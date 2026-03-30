@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+}
+
+allprojects {
+    group = 'sap'
+    version = '1.0.0-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    dependencies {
+        implementation platform('io.vertx:vertx-stack-depchain:5.0.4')
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+        testImplementation 'io.vertx:vertx-junit5'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+tasks.register("runAccountService") {
+    dependsOn ':account-service:run'
+    group = "application"
+    description = "Runs the Account Service"
+}
+
+tasks.register("runDeliveryService") {
+    dependsOn ':delivery-service:run'
+    group = "application"
+    description = "Runs the Delivery Service"
+}
+
+tasks.register("runDrone1", JavaExec) {
+    dependsOn ':drone-service:classes'
+    group = "application"
+    description = "Runs Drone 1"
+    classpath = project(':drone-service').sourceSets.main.runtimeClasspath
+    mainClass = 'sap.drone.infrastructure.DroneMain'
+    args = ['drone-1', '9001']
+}
+
+tasks.register("runDrone2", JavaExec) {
+    dependsOn ':drone-service:classes'
+    group = "application"
+    description = "Runs Drone 2"
+    classpath = project(':drone-service').sourceSets.main.runtimeClasspath
+    mainClass = 'sap.drone.infrastructure.DroneMain'
+    args = ['drone-2', '9002']
+}

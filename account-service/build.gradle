@@ -1,0 +1,11 @@
+plugins {
+    id 'application'
+}
+application {
+    mainClass = 'sap.account.infrastructure.AccountServiceMain'
+}
+dependencies {
+    implementation project(':common')
+    implementation 'io.vertx:vertx-core'
+    implementation 'io.vertx:vertx-web'
+}

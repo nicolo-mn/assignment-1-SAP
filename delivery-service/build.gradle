@@ -1,0 +1,11 @@
+plugins {
+    id 'application'
+}
+application {
+    mainClass = 'sap.delivery.DeliveryVerticle'
+}
+dependencies {
+    implementation project(':common')
+    implementation 'io.vertx:vertx-core'
+    implementation 'io.vertx:vertx-web'
+}

@@ -36,10 +36,10 @@ tasks.register("runAccountService") {
     description = "Runs the Account Service"
 }
 
-tasks.register("runDeliveryService") {
-    dependsOn ':delivery-service:run'
+tasks.register("runDispatchService") {
+    dependsOn ':dispatch-service:run'
     group = "application"
-    description = "Runs the Delivery Service"
+    description = "Runs the Dispatch Service"
 }
 
 tasks.register("runDrone1", JavaExec) {

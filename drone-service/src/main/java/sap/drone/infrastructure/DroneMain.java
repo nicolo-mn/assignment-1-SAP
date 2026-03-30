@@ -17,24 +17,25 @@ public class DroneMain {
             port = Integer.parseInt(args[1]);
         } else {
             String portEnv = System.getenv("PORT");
-            if (portEnv != null) port = Integer.parseInt(portEnv);
+            if (portEnv != null)
+                port = Integer.parseInt(portEnv);
             String idEnv = System.getenv("DRONE_ID");
-            if (idEnv != null) droneId = idEnv;
+            if (idEnv != null)
+                droneId = idEnv;
         }
 
         Vertx vertx = Vertx.vertx();
         var repository = new ShippingRepositoryImpl();
         var executor = new VertxShippingExecutor(vertx);
-        var deliveryProxy = new DeliveryServiceProxy();
-        
+        var dispatchProxy = new DispatchServiceProxy();
+
         Drone drone = new Drone(droneId, 5, 10.0, new Position(0, 0));
-        
+
         DroneServiceImpl droneService = new DroneServiceImpl(
-            repository,
-            drone,
-            executor,
-            deliveryProxy
-        );
+                repository,
+                drone,
+                executor,
+                dispatchProxy);
 
         final int finalPort = port;
         final String finalDroneId = droneId;

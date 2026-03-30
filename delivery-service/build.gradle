@@ -2,7 +2,7 @@ plugins {
     id 'application'
 }
 application {
-    mainClass = 'sap.delivery.DeliveryVerticle'
+    mainClass = 'sap.dispatch.DispatchVerticle'
 }
 dependencies {
     implementation project(':common')

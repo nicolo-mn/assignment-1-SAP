@@ -2,5 +2,5 @@ rootProject.name = 'assignment-1-SAP'
 
 include 'common'
 include 'account-service'
-include 'delivery-service'
+include 'dispatch-service'
 include 'drone-service'

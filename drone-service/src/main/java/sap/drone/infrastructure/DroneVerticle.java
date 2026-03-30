@@ -55,12 +55,14 @@ public class DroneVerticle extends VerticleBase {
     private void createShipping(RoutingContext context) {
         JsonObject body = context.body().asJsonObject();
         String shippingId = body.getString("shippingId");
-        double x = body.getDouble("x");
-        double y = body.getDouble("y");
-        long timeLeft = body.getLong("timeLeft");
+        double pickupX = body.getDouble("pickupX");
+        double pickupY = body.getDouble("pickupY");
+        double deliveryX = body.getDouble("deliveryX");
+        double deliveryY = body.getDouble("deliveryY");
 
         try {
-            droneService.createNewShipping(shippingId, new Position(x, y), timeLeft);
+            droneService.createNewShipping(shippingId, new Position(pickupX, pickupY),
+                    new Position(deliveryX, deliveryY));
             JsonObject reply = new JsonObject().put("result", "ok");
             sendReply(context.response(), reply);
         } catch (ShippingAlreadyPresentException ex) {

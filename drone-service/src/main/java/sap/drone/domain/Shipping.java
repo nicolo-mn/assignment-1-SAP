@@ -7,17 +7,15 @@ import sap.common.ddd.Entity;
 
 public class Shipping implements Entity<String> {
     private final String id;
-    private Position startPosition;
     private Position currentPosition;
-    private long timeLeft;
+    private Position deliveryPosition;
     private ShippingStatus status = ShippingStatus.PENDING;
     private List<ShippingObserver> observers = new ArrayList<>();
 
-    public Shipping(String id, Position position, long timeLeft) {
+    public Shipping(String id, Position pickupPosition, Position deliveryPosition) {
         this.id = id;
-        this.startPosition = position;
-        this.currentPosition = position;
-        this.timeLeft = timeLeft;
+        this.currentPosition = pickupPosition;
+        this.deliveryPosition = deliveryPosition;
     }
 
     @Override
@@ -31,9 +29,8 @@ public class Shipping implements Entity<String> {
             status = ShippingStatus.IN_PROGRESS;
         }
         this.currentPosition = position;
-        this.timeLeft = timeLeft;
         notifyObservers(new ShippingUpdate(id, position, timeLeft));
-        if (status == ShippingStatus.IN_PROGRESS && timeLeft <= 0) {
+        if (status == ShippingStatus.IN_PROGRESS && position.equals(deliveryPosition)) {
             status = ShippingStatus.COMPLETED;
             notifyObservers(new ShippingCompleted(id));
         }
@@ -46,6 +43,10 @@ public class Shipping implements Entity<String> {
 
     public Position getCurrentPosition() {
         return currentPosition;
+    }
+
+    public Position getDeliveryPosition() {
+        return deliveryPosition;
     }
 
     public ShippingStatus getStatus() {

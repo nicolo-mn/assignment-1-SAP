@@ -8,23 +8,25 @@ import sap.drone.domain.ShippingStatus;
 public class DroneServiceImpl implements DroneService {
     private final ShippingRepository shippingRepository;
     private final Drone drone;
-    private final DeliveryService deliveryService;
+    private final DispatchService dispatchService;
     private Shipping currentShipping;
     private final ShippingExecutor shippingExecutor;
 
-    public DroneServiceImpl(ShippingRepository shippingRepository, Drone drone, ShippingExecutor shippingExecutor, DeliveryService deliveryService) {
+    public DroneServiceImpl(ShippingRepository shippingRepository, Drone drone, ShippingExecutor shippingExecutor,
+            DispatchService dispatchService) {
         this.shippingRepository = shippingRepository;
         this.drone = drone;
         this.shippingExecutor = shippingExecutor;
-        this.deliveryService = deliveryService;
+        this.dispatchService = dispatchService;
     }
 
     @Override
-    public void createNewShipping(String shippingId, Position position, long timeLeft) throws ShippingAlreadyPresentException {
+    public void createNewShipping(String shippingId, Position pickupPosition, Position deliveryPosition)
+            throws ShippingAlreadyPresentException {
         if (shippingRepository.isPresent(shippingId)) {
             throw new ShippingAlreadyPresentException();
         }
-        shippingRepository.addShipping(new Shipping(shippingId, position, timeLeft));
+        shippingRepository.addShipping(new Shipping(shippingId, pickupPosition, deliveryPosition));
     }
 
     @Override
@@ -42,14 +44,14 @@ public class DroneServiceImpl implements DroneService {
         drone.moveToTarget();
         if (currentShipping.getStatus() == ShippingStatus.PENDING) {
             if (drone.getCurrentPosition().equals(currentShipping.getCurrentPosition())) {
-                drone.setTargetPosition(null);
+                drone.setTargetPosition(currentShipping.getDeliveryPosition());
                 return currentShipping.update(drone.getCurrentPosition(), drone.getTimeLeft());
             }
             return ShippingStatus.PENDING;
         }
         ShippingStatus status = currentShipping.update(drone.getCurrentPosition(), drone.getTimeLeft());
         if (status == ShippingStatus.COMPLETED) {
-            deliveryService.notifyShippingCompleted(currentShipping.getId());
+            dispatchService.notifyShippingCompleted(currentShipping.getId());
         }
         return status;
     }

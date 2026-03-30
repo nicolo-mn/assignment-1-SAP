@@ -7,7 +7,8 @@ import sap.drone.domain.Shipping;
 
 @InBoundPort
 public interface DroneService {
-    void createNewShipping(String shippingId, Position position, long timeLeft) throws ShippingAlreadyPresentException;
+    void createNewShipping(String shippingId, Position pickupPosition, Position deliveryPosition)
+            throws ShippingAlreadyPresentException;
 
     void startShipping(String shippingId) throws ShippingNotFoundException;
 

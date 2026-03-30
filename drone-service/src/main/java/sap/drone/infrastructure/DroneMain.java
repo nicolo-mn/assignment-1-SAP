@@ -24,10 +24,13 @@ public class DroneMain {
                 droneId = idEnv;
         }
 
+        String dispatchURI = System.getenv("DISPATCH_URI");
+        if (dispatchURI == null) dispatchURI = "http://localhost:8081";
+
         Vertx vertx = Vertx.vertx();
         var repository = new ShippingRepositoryImpl();
         var executor = new VertxShippingExecutor(vertx);
-        var dispatchProxy = new DispatchServiceProxy();
+        var dispatchProxy = new DispatchServiceProxy(dispatchURI);
 
         Drone drone = new Drone(droneId, 5, 10.0, new Position(0, 0));
 

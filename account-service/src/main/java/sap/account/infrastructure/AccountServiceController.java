@@ -15,13 +15,6 @@ import io.vertx.core.json.*;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.StaticHandler;
 
-/**
- *
- * TicTacToe Account Service controller
- *
- * @author aricci
- *
- */
 public class AccountServiceController extends VerticleBase {
 
 	private int port;

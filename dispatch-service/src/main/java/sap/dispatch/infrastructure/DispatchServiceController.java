@@ -48,6 +48,18 @@ public class DispatchServiceController extends VerticleBase {
         HttpServer server = vertx.createHttpServer();
 
         Router router = Router.router(vertx);
+        // enable CORS for browser requests coming from the UI (different origin/port)
+        router.route().handler(io.vertx.ext.web.handler.CorsHandler.create()
+            .addOrigin("*")
+            .allowedMethod(HttpMethod.GET)
+            .allowedMethod(HttpMethod.POST)
+            .allowedMethod(HttpMethod.OPTIONS)
+            .allowedHeader("Access-Control-Allow-Method")
+            .allowedHeader("Access-Control-Allow-Origin")
+            .allowedHeader("Access-Control-Allow-Credentials")
+            .allowedHeader("Content-Type")
+            .allowedHeader("Authorization"));
+
         router.route().handler(BodyHandler.create());
 
         router.route(HttpMethod.POST, LOGIN_PATH).handler(this::login);
@@ -99,13 +111,14 @@ public class DispatchServiceController extends VerticleBase {
 
         var reply = new JsonObject();
         try {
-            String shippingId = dispatchService.createShipping(
+            var result = dispatchService.createShipping(
                     sessionId,
                     new Position(pickupX, pickupY),
                     new Position(deliveryX, deliveryY),
                     timeLimit, timeBeforeScheduling, weight);
             reply.put("result", "ok");
-            reply.put("shippingId", shippingId);
+            reply.put("shippingId", result.shippingId());
+            reply.put("assignedDroneUri", result.droneUri());
             sendReply(context.response(), reply);
         } catch (CreateShippingFailedException ex) {
             reply.put("result", "error");

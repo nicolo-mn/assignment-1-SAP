@@ -1,11 +1,14 @@
 package sap.drone.application;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import sap.drone.domain.Drone;
 import sap.drone.domain.Position;
 import sap.drone.domain.Shipping;
 import sap.drone.domain.ShippingStatus;
 
 public class DroneServiceImpl implements DroneService {
+    static Logger logger = Logger.getLogger("[Drone Service]");
     private final ShippingRepository shippingRepository;
     private final Drone drone;
     private final DispatchService dispatchService;
@@ -26,14 +29,17 @@ public class DroneServiceImpl implements DroneService {
         if (shippingRepository.isPresent(shippingId)) {
             throw new ShippingAlreadyPresentException();
         }
+        logger.log(Level.INFO, "Creating new shipping: " + shippingId);
         shippingRepository.addShipping(new Shipping(shippingId, pickupPosition, deliveryPosition));
     }
 
     @Override
     public void startShipping(String shippingId) throws ShippingNotFoundException {
         if (!shippingRepository.isPresent(shippingId)) {
+            logger.log(Level.WARNING, "Shipping not found: " + shippingId);
             throw new ShippingNotFoundException();
         }
+        logger.log(Level.INFO, "Starting shipping: " + shippingId);
         currentShipping = shippingRepository.getShipping(shippingId);
         drone.setTargetPosition(currentShipping.getCurrentPosition());
         shippingExecutor.executeToCompletion(this);

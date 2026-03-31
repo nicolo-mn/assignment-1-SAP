@@ -63,17 +63,38 @@ public class DispatchServiceImpl implements DispatchService {
     }
 
     @Override
-    public String createShipping(String sessionId, Position pickupPosition, Position deliveryPosition, long timeLimit,
+    public CreateShippingResult createShipping(String sessionId, Position pickupPosition, Position deliveryPosition, long timeLimit,
             long timeBeforeScheduling, long weight) throws CreateShippingFailedException {
-        if (getTargetFleet(pickupPosition, deliveryPosition, timeLimit, weight).isPresent()) {
+        var targetFleetOpt = getTargetFleet(pickupPosition, deliveryPosition, timeLimit, weight);
+        if (targetFleetOpt.isPresent()) {
             var shippingId = generateShippingId();
             var shipping = new Shipping(shippingId, pickupPosition, deliveryPosition, weight, timeLimit);
-            if (timeBeforeScheduling > 0) {
-                dispatchScheduler.scheduleDispatch(shipping, timeBeforeScheduling, this);
-            } else {
-                scheduleShipping(shipping);
+            // assign casually to the first available drone in the target fleet
+            var targetFleet = targetFleetOpt.get();
+            DroneService assigned = null;
+            for (DroneService d : targetFleet.keySet()) {
+                assigned = d;
+                break;
             }
-            return shippingId;
+            if (assigned != null) {
+                shippingToDroneMap.put(shippingId, assigned);
+                try {
+                    assigned.createNewShipping(shippingId, pickupPosition, deliveryPosition);
+                } catch (ShippingAlreadyPresentException e) {
+                    logger.log(Level.WARNING, "Shipping already present on drone: " + shippingId);
+                    throw new CreateShippingFailedException();
+                }
+
+                // schedule or start immediately depending on delay
+                if (timeBeforeScheduling > 0) {
+                    dispatchScheduler.scheduleDispatch(shipping, timeBeforeScheduling, this);
+                } else {
+                    scheduleShipping(shipping);
+                }
+                return new CreateShippingResult(shippingId, assigned.getUri());
+            } else {
+                throw new CreateShippingFailedException();
+            }
         } else {
             throw new CreateShippingFailedException();
         }
@@ -81,17 +102,20 @@ public class DispatchServiceImpl implements DispatchService {
 
     @Override
     public void scheduleShipping(Shipping shipping) {
-        var targetFleet = getTargetFleet(shipping.getCurrentPosition(), shipping.getDeliveryPosition(),
-                shipping.getTimeLimit(), shipping.getWeight()).get();
-        var selectedDrone = getDroneWithLeastShippings(targetFleet);
-        targetFleet.get(selectedDrone).add(shipping);
-        shippingToDroneMap.put(shipping.getId(), selectedDrone);
-        if (targetFleet.get(selectedDrone).size() == 1) {
-            try {
-                selectedDrone.startShipping(shipping.getId());
-            } catch (ShippingNotFoundException e) {
-                logger.log(Level.WARNING, "Shipping not found: " + shipping.getId());
+        // when the scheduler fires, start the shipping on the drone that was previously assigned
+        DroneService assigned = shippingToDroneMap.get(shipping.getId());
+        if (assigned == null) {
+            logger.log(Level.WARNING, "No assigned drone found for shipping: " + shipping.getId());
+            return;
+        }
+        var targetQueue = lightFleetQueues.containsKey(assigned) ? lightFleetQueues.get(assigned) : heavyFleetQueues.get(assigned);
+        try {
+            targetQueue.add(shipping);
+            if (targetQueue.size() == 1) {
+                assigned.startShipping(shipping.getId());
             }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to start scheduled shipping: " + shipping.getId());
         }
     }
 
@@ -100,20 +124,15 @@ public class DispatchServiceImpl implements DispatchService {
         var drone = shippingToDroneMap.remove(shippingId);
         if (drone == null) {
             logger.log(Level.WARNING, "Received completion for unknown shipping: " + shippingId);
-            return;
         }
-        var queue = lightFleetQueues.containsKey(drone)
-                ? lightFleetQueues.get(drone)
-                : heavyFleetQueues.get(drone);
-        if (queue != null) {
-            queue.poll();
-            var next = queue.peek();
-            if (next != null) {
-                try {
-                    drone.startShipping(next.getId());
-                } catch (ShippingNotFoundException e) {
-                    logger.log(Level.WARNING, "Next shipping not found: " + next.getId());
-                }
+        var targetQueue = lightFleetQueues.containsKey(drone) ? lightFleetQueues.get(drone) : heavyFleetQueues.get(drone);
+        targetQueue.poll();
+        if (!targetQueue.isEmpty()) {
+            var nextShipping = targetQueue.peek();
+            try {                
+                drone.startShipping(nextShipping.getId());
+            } catch (ShippingNotFoundException e) {
+                logger.log(Level.WARNING, "Failed to start next shipping: " + nextShipping.getId());
             }
         }
     }
@@ -141,17 +160,4 @@ public class DispatchServiceImpl implements DispatchService {
             return Optional.empty();
         }
     }
-
-    private DroneService getDroneWithLeastShippings(Map<DroneService, Deque<Shipping>> fleetQueues) {
-        DroneService selectedDrone = null;
-        int minSize = Integer.MAX_VALUE;
-        for (Map.Entry<DroneService, Deque<Shipping>> entry : fleetQueues.entrySet()) {
-            if (entry.getValue().size() < minSize) {
-                minSize = entry.getValue().size();
-                selectedDrone = entry.getKey();
-            }
-        }
-        return selectedDrone;
-    }
-
 }

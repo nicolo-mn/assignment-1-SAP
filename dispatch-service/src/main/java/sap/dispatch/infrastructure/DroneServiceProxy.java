@@ -41,7 +41,7 @@ public class DroneServiceProxy implements DroneService {
             body.put("deliveryX", deliveryPosition.x());
             body.put("deliveryY", deliveryPosition.y());
 
-            String url = droneURI + "/api/shippings";
+            String url = droneURI + "/api/v1/shippings";
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
@@ -66,7 +66,7 @@ public class DroneServiceProxy implements DroneService {
         try {
             HttpClient client = HttpClient.newHttpClient();
 
-            String url = droneURI + "/api/shippings/" + shippingId + "/start";
+            String url = droneURI + "/api/v1/shippings/" + shippingId + "/start";
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
@@ -84,5 +84,10 @@ public class DroneServiceProxy implements DroneService {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Error reaching drone at " + droneURI, ex);
         }
+    }
+
+    @Override
+    public String getUri() {
+        return droneURI;
     }
 }

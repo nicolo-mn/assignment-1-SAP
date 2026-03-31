@@ -40,6 +40,15 @@ public class AccountServiceController extends VerticleBase {
 		HttpServer server = vertx.createHttpServer();
 
 		Router router = Router.router(vertx);
+		router.route().handler(io.vertx.ext.web.handler.CorsHandler.create()
+				.addOrigin("*")
+				.allowedMethod(HttpMethod.GET)
+				.allowedMethod(HttpMethod.POST)
+				.allowedMethod(HttpMethod.OPTIONS)
+				.allowedHeader("Access-Control-Allow-Method")
+				.allowedHeader("Access-Control-Allow-Origin")
+				.allowedHeader("Access-Control-Allow-Credentials")
+				.allowedHeader("Content-Type"));
 		router.route(HttpMethod.POST, ACCOUNTS_RESOURCE_PATH).handler(this::createAccount);
 		router.route(HttpMethod.GET, ACCOUNT_RESOURCE_PATH).handler(this::getAccountInfo);
 		router.route(HttpMethod.POST, CHECK_PWD_RESOURCE_PATH).handler(this::checkAccountPassword);

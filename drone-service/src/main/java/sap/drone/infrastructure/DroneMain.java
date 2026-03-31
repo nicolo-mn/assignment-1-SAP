@@ -42,7 +42,7 @@ public class DroneMain {
 
         final int finalPort = port;
         final String finalDroneId = droneId;
-        DroneVerticle verticle = new DroneVerticle(droneService, port);
+        DroneServiceController verticle = new DroneServiceController(droneService, port);
         vertx.deployVerticle(verticle).onSuccess(id -> {
             System.out.println("Drone Service " + finalDroneId + " deployed on port " + finalPort);
         }).onFailure(err -> {

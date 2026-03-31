@@ -8,7 +8,7 @@ import sap.dispatch.domain.Shipping;
 public interface DispatchService {
     String login(String userName, String password) throws LoginFailedException;
 
-    String createShipping(String sessionId, Position pickupPosition, Position deliveryPosition, long timeLimit,
+    CreateShippingResult createShipping(String sessionId, Position pickupPosition, Position deliveryPosition, long timeLimit,
             long timeBeforeScheduling, long weight) throws CreateShippingFailedException;
 
     void scheduleShipping(Shipping shipping);

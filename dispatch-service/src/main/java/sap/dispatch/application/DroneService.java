@@ -9,5 +9,7 @@ public interface DroneService {
             throws ShippingAlreadyPresentException;
 
     void startShipping(String shippingId) throws ShippingNotFoundException;
+    
+    String getUri();
 
 }

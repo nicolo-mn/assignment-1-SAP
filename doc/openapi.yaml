@@ -1,0 +1,258 @@
+openapi: 3.0.3
+info:
+  title: Drone Delivery Microservices API
+  description: API documentation for Account, Dispatch, and Drone services.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Account Service
+  - url: http://localhost:8081
+    description: Dispatch Service
+  - url: http://localhost:9001
+    description: Drone Service 1
+  - url: http://localhost:9002
+    description: Drone Service 2
+paths:
+  /api/v1/accounts:
+    post:
+      summary: Register a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userName
+                - password
+              properties:
+                userName:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                  accountLink:
+                    type: string
+        '400':
+          description: Account already present
+  /api/v1/accounts/{accountId}:
+    get:
+      summary: Get account information
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                  accountInfo:
+                    type: object
+                    properties:
+                      userName:
+                        type: string
+                      password:
+                        type: string
+                      whenCreated:
+                        type: string
+        '404':
+          description: Account not found
+  /api/v1/accounts/{accountId}/check-pwd:
+    post:
+      summary: Verify account password
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Password verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    enum: [valid-password, invalid-password]
+
+  /api/v1/dispatch/login:
+    post:
+      summary: Login to dispatch service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userName:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                  sessionId:
+                    type: string
+                  createShippingLink:
+                    type: string
+        '401':
+          description: Login failed
+
+  /api/v1/dispatch/user-sessions/{sessionId}/shippings:
+    post:
+      summary: Create a new shipping request
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pickupX:
+                  type: number
+                pickupY:
+                  type: number
+                deliveryX:
+                  type: number
+                deliveryY:
+                  type: number
+                timeLimit:
+                  type: integer
+                timeBeforeScheduling:
+                  type: integer
+                weight:
+                  type: integer
+      responses:
+        '200':
+          description: Shipping created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                  shippingId:
+                    type: string
+                  assignedDroneUri:
+                    type: string
+        '400':
+          description: Create shipping failed
+
+  /api/v1/dispatch/shippings/{shippingId}/completed:
+    post:
+      summary: Notify that a shipping process has completed
+      parameters:
+        - in: path
+          name: shippingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+
+  /api/v1/shippings:
+    post:
+      summary: Create a shipping instruction for a drone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shippingId:
+                  type: string
+                pickupX:
+                  type: number
+                pickupY:
+                  type: number
+                deliveryX:
+                  type: number
+                deliveryY:
+                  type: number
+      responses:
+        '200':
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+        '400':
+          description: Shipping already present
+
+  /api/v1/shippings/{shippingId}/start:
+    post:
+      summary: Start a previously created shipping
+      parameters:
+        - in: path
+          name: shippingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Drone started shipping
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+        '404':
+          description: Shipping not found

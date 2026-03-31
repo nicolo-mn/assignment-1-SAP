@@ -23,6 +23,9 @@ subprojects {
         implementation platform('io.vertx:vertx-stack-depchain:5.0.4')
         testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
         testImplementation 'io.vertx:vertx-junit5'
+        testImplementation 'io.cucumber:cucumber-java:7.15.0'
+        testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.15.0'
+        testImplementation 'org.junit.platform:junit-platform-suite:1.10.0'
     }
 
     test {

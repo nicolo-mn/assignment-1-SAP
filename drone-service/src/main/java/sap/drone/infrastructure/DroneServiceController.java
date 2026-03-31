@@ -113,6 +113,7 @@ public class DroneServiceController extends VerticleBase {
 
                     EventBus eb = vertx.eventBus();
                     eb.consumer(shippingId, evtMsg -> {
+                        logger.log(Level.INFO, "Received event for shipping " + shippingId + ": " + evtMsg.body());
                         JsonObject ev = (JsonObject) evtMsg.body();
                         webSocket.writeTextMessage(ev.encodePrettily());
                     });

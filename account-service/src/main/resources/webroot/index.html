@@ -120,8 +120,8 @@
                             shippingId = data.shippingId;
                             document.getElementById('shipping-status').innerText = 'Created Shipping ID: ' + shippingId;
                             // if server returned assigned drone URI, auto-connect for tracking
-                            if (data.droneUri) {
-                                const assigned = data.droneUri; // e.g. http://localhost:9001
+                            if (data.assignedDroneUri) {
+                                const assigned = data.assignedDroneUri; // e.g. http://localhost:9001
                                 const wsUrl = assigned.replace('http', 'ws') + '/api/v1/events';
                                 if (ws) ws.close();
                                 ws = new WebSocket(wsUrl);

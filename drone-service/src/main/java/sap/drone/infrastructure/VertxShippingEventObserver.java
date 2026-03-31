@@ -1,5 +1,6 @@
 package sap.drone.infrastructure;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import sap.drone.domain.ShippingEvent;
@@ -9,6 +10,7 @@ import sap.drone.domain.ShippingUpdate;
 import sap.drone.domain.ShippingCompleted;
 
 public class VertxShippingEventObserver implements ShippingObserver {
+    Logger logger = Logger.getLogger("[VertxShippingEventObserver]");
     private final EventBus eventBus;
 
     public VertxShippingEventObserver(EventBus eventBus) {
@@ -36,8 +38,10 @@ public class VertxShippingEventObserver implements ShippingObserver {
 
         if (shippingId != null) {
             json.put("shippingId", shippingId);
-            System.out.println("Publishing Event for " + shippingId + ": " + json);
+            logger.log(Level.INFO, "Publishing Event for " + shippingId + ": " + json);
             eventBus.publish(shippingId, json);
+        } else {
+            logger.log(Level.WARNING, "Received unknown event type: " + event.getClass().getName());
         }
     }
 }

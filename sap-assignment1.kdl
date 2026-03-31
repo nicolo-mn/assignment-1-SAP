@@ -1,0 +1,40 @@
+layout {
+    // Keep the default Zellij UI at the top and bottom
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
+    // Define the workspace with the specific working directory
+    tab name="SAP Assignment" cwd="~/Documents/Università/SAP/assignment-1-SAP" {
+        pane split_direction="vertical" {
+            
+            // Left column (Services)
+            pane split_direction="horizontal" {
+                pane command="./gradlew" {
+                    args "runAccountService"
+                }
+                pane command="./gradlew" {
+                    args "runDispatchService"
+                }
+            }
+            
+            // Right column (Drones)
+            pane split_direction="horizontal" {
+                pane command="./gradlew" {
+                    args "runDrone1"
+                }
+                pane command="./gradlew" {
+                    args "runDrone2"
+                }
+            }
+            
+        }
+    }
+}
+
